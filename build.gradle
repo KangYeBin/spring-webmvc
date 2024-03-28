@@ -38,6 +38,10 @@ dependencies {
 
 	// Spring Framework에서 JDBC를 좀 더 쉽게 사용할 수 있게 해주는 라이브러리
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc:3.2.4'
+
+	// 마이바티스 라이브러리
+	// Spring Boot 3에서는 반드시 mybatis 3.x 버전으로 진행
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
 }
 
 tasks.named('test') {
