@@ -173,31 +173,31 @@
                 <div class="card">
                     <div class="card-body">
 
-                            <div class="row">
-                                <div class="col-md-9">
-                                    <div class="form-group">
-                                        <label for="newReplyText" hidden>댓글 내용</label>
-                                        <textarea rows="3" id="newReplyText" name="replyText" class="form-control"
-                                            placeholder="댓글을 입력해주세요."></textarea>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-
-
-                                        <div class="profile-box">
-                                            <img src="/assets/img/anonymous.jpg" alt="프사">
-                                        </div>
-
-
-                                        <label for="newReplyWriter" hidden>댓글 작성자</label>
-                                        <input id="newReplyWriter" name="replyWriter" type="text" class="form-control"
-                                            placeholder="작성자 이름" style="margin-bottom: 6px;" >
-                                        <button id="replyAddBtn" type="button" class="btn btn-dark form-control">등록
-                                        </button>
-                                    </div>
+                        <div class="row">
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <label for="newReplyText" hidden>댓글 내용</label>
+                                    <textarea rows="3" id="newReplyText" name="replyText" class="form-control"
+                                        placeholder="댓글을 입력해주세요."></textarea>
                                 </div>
                             </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+
+
+                                    <div class="profile-box">
+                                        <img src="/assets/img/anonymous.jpg" alt="프사">
+                                    </div>
+
+
+                                    <label for="newReplyWriter" hidden>댓글 작성자</label>
+                                    <input id="newReplyWriter" name="replyWriter" type="text" class="form-control"
+                                        placeholder="작성자 이름" style="margin-bottom: 6px;">
+                                    <button id="replyAddBtn" type="button" class="btn btn-dark form-control">등록
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
                 </div> <!-- end reply write -->
@@ -264,6 +264,161 @@
 
     </div>
 
+    <script>
+        const bno = '${b.boardNo}'; // 게시글 번호를 전역변수화
+        const URL = '/api/v1/replies' // 댓글과 관련된 요청 URL을 전역변수화
+
+
+        // 화면에 댓글 태그들을 렌더링하는 함수
+        function renderReplies(replyList) {
+            let tag = '';
+
+            if (replyList != null && replyList.length > 0) {
+
+                for (let reply of replyList) {
+                    // 객체 디스트럭처링
+                    const {
+                        rno,
+                        writer,
+                        text,
+                        regDate
+                    } = reply;
+
+                    tag += `
+                            <div id='replyContent' class='card-body' data-replyId='\${rno}'>
+                            <div class='row user-block'>
+                                <span class='col-md-8'>
+                        `;
+
+                    tag += `<b>\${writer}</b>
+                            </span>
+                            <span class='col-md-4 text-right'><b>\${regDate}</b></span>
+                            </div><br>
+                            <div class='row'>
+                                <div class='col-md-9'>\${text}</div>
+                                <div class='col-md-3 text-right'>
+                        `;
+
+                    tag += `
+                            <a id='replyModBtn' class='btn btn-sm btn-outline-dark' data-bs-toggle='modal' data-bs-target='#replyModifyModal'>수정</a>&nbsp;
+                            <a id='replyDelBtn' class='btn btn-sm btn-outline-dark' href='#'>삭제</a>
+                        `;
+
+                    tag += `    </div>
+                                </div>
+                            </div>
+                        `;
+                } // end for문
+            } else {
+                tag += "<div id='replyContent' class='card-body'>댓글이 아직 없습니다! ㅠㅠ</div>";
+            }
+
+            // 댓글 수 렌더링
+            document.getElementById('replyCnt').textContent = replyList.length;
+            // 댓글 렌더링
+            // 반복문을 이용해서 문자열로 작성한 tag를 댓글 역영에 div레
+            document.getElementById('replyData').innerHTML = tag;
+
+        }
+
+
+        // 서버에 실시간으로 비동기 통신을 해서 JSON을 받아오는 함수
+        function fetchGetReplies() {
+            // fetch 함수를 통해 비동기 통신을 진행할 때 GET 요청은 요청에 관련한 객체를 따로 전달하지 않음
+            // method를 get이라고 이야기하지 않고, 데이터 전달 시에는 URL에 포함시켜서 전달
+            // 자바스크립트 문자열 안에 달러와 중괄호를 쓰면 el로 인식, 템플릿 리터럴 문자를 쓰고 싶으면 앞에 \를 붙인다
+            // fetch(URL + '/' + {bno})
+
+            fetch(`\${URL}/\${bno}`)
+                .then(res => res.json())
+                .then(replyList => {
+                    console.log(replyList);
+
+                    // 서버로부터 전달받은 댓글 목록들을 화면에 그려야 한다
+                    // 기존에는 model에 담아서 jsp로 전달하고 jsp에서 el을 통해서 화면에 출력하는데
+                    // 이제 서버는 데이터만 넘겨주고 자바스크립트에서 화면 가공을 진행해야한다
+
+                    renderReplies(replyList);
+                });
+        }
+
+        const $addBtn = document.getElementById('replyAddBtn');
+
+        $addBtn.onclick = e => {
+
+            const $replyText = document.getElementById('newReplyText'); // 댓글 내용
+            const $replyWriter = document.getElementById('newReplyWriter'); // 댓글 작성자
+
+            // 공백이 제거된 값을 얻음
+            const textVal = $replyText.value.trim();
+            const writerVal = $replyWriter.value.trim();
+
+            // 사용자 입력값 검증
+            if (textVal === '') {
+                alert('댓글 내용은 필수값입니다!')
+                return;
+            } else if (writerVal === '') {
+                alert('댓글 작성자는 필수값입니다!')
+                return;
+            } else if (writerVal.length < 2 || writerVal.length > 8) {
+                alert('댓글 작성자는 2~8글자로 작성하세요!')
+                return;
+            }
+
+            // 서버로 보낼 데이터 준비
+            const payload = {
+                text: textVal,
+                author: writerVal,
+                bno: bno
+            }
+
+            // 요청 방식 및 데이터를 전달할 정보 객체 만들기 (POST)
+            const requestInfo = {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify(payload) // js 객체를 JSON으로 변환해서 body에 추가
+            }
+
+            // 서버에 POST 요청 보내기
+            fetch(URL, requestInfo)
+                // then(callbackFn) -> 비동기 통신의 결과를 확인하기 위해 then과 콜백 함수 전달
+                // 콜백 함수의 매개변수로 응답 정보가 담긴 Response 객체가 전달되고,
+                // Response 객체에서 json 데이터를 꺼내고 싶으면 JSON(), 단순 텍스트라면 text()
+
+                .then(response => {
+                    console.log(response.status);
+                    if (response.status === 200) {
+                        alert('댓글이 정상 등록되었습니다.');
+                        return response.text();
+                    } else {
+                        alert('입력값에 문제가 있습니다. 다시 확인하세요')
+                        return response.text();
+                    }
+                })
+                .then(data => {
+                    console.log('응답 성공 ' + data)
+
+                    // 댓글 작성자 input과 댓글 내용 text를 지움
+                    $replyText.value = '';
+                    $replyWriter.value = '';
+
+                    // 댓글 목록 비동기 요청이 들어가야 한다
+                    // 댓글 등록 이후 뿐만 아니라 상세보기에 처음 들어왔을 때도 호출되어야 함
+                    fetchGetReplies();
+                });
+        }
+
+        // ============== 메인 실행부 ================ //
+        // 즉시 실행 함수를 통해 페이지가 로딩되면 함수가 자동으로 호출되도록 한다
+        (() => {
+
+            // 댓글을 서버에서 불러오기
+            fetchGetReplies();
+
+        })();
+    </script>
 
 
 </body>
