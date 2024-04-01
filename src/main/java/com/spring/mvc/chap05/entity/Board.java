@@ -16,10 +16,11 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter @ToString
-@AllArgsConstructor
+@Setter @Getter
+@ToString @EqualsAndHashCode
 @NoArgsConstructor
-@EqualsAndHashCode
+@AllArgsConstructor
+@Builder
 public class Board {
 
 	private int boardNo;	// 게시글 번호
@@ -34,4 +35,8 @@ public class Board {
 		this.title = dto.getTitle();
 		this.content = dto.getContent();
 	}
+
+
+
+
 }

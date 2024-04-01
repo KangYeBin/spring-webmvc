@@ -6,12 +6,30 @@
 <!-- namespace에는 이 파일과 연동될 인터페이스의 전체 경로(패키지명 포함 클래스명)를 적는다 -->
 <mapper namespace="com.spring.mvc.chap05.mapper.BoardMapper">
 
+    <sql id="search">
+        <if test="type == 'title'">
+            WHERE title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="type == 'content'">
+            WHERE content LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="type == 'writer'">
+            WHERE writer LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="type == 'tc'">
+            WHERE title LIKE CONCAT('%', #{keyword}, '%')
+            OR content LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+    </sql>
+
+
     <!-- 구현하고자하는 인터페이스에 명세된 추상 메서드별로 SQL을 작성 -->
     <!-- id에는 추상 메서드 이름 -->
     <!-- SQL 작성시 값을 전달하는 방법은
-        1. 추상 메서드를 보고 어떤 타입의 값이 전달되는지 확인
-        2. 값이 만약 객체라면 객체 내부의 필드값을 꺼내기 위해 필드명을 지목
-        3. 단일 값이라면 매개변수명으로 지목 -->
+         1. 추상 메서드를 보고 어떤 타입의 값이 전달되는지 확인
+         2. 값이 만약 객체라면 객체 내부의 필드값을 꺼내기 위해 필드명을 지목 (get 안붙임)
+         3. 단일 값(기본 타입)이라면 매개변수명으로 지목 -->
+
     <insert id="save">
         INSERT INTO tbl_board
             (title, content, writer)
@@ -36,22 +54,39 @@
     </update>
 
     <!-- SELECT의 경우에는 반환되는 타입을 작성해줘야 한다.
-        resultType을 통해 리턴되는 객체의 타입을 이야기해준다.
-        데이터베이스의 컬러명과 엔티티의 필드명이 동일해야 한다-->
+        resultType을 통해 리턴되는 객체의 타입을 얘기해준다.
+        데이터베이스의 컬럼명과 엔터티의 필드명이 동일해야 한다.
+        (스네이크케이스 -> 카멜케이스 변환은 따로 설정을 통해 처리)
+        ex) board_no : boardNo (o)  board_num : bnum (x)
 
+        resultType에 List를 따로 언급할 필요 없습니다. -->
     <select id="findAll" resultType="board">
         SELECT
             *
         FROM
             tbl_board
+
+        <include refid="search" />
+
         ORDER BY
             board_no DESC
+        LIMIT #{pageStart}, #{amount}
     </select>
 
     <select id="findOne" resultType="board">
-        SELECT * FROM tbl_board WHERE board_no = #{bno}
+        SELECT
+            *
+        FROM
+            tbl_board
+        WHERE
+            board_no = #{boardNo}
     </select>
 
+    <select id="getCount" resultType="int">
+        SELECT COUNT(*)
+        FROM tbl_board
+        <include refid="search" />
+    </select>
 
 
 </mapper>

@@ -159,7 +159,8 @@
         <label for="content">내용</label>
         <div id="content">${b.content}</div>
         <div class="buttons">
-            <button class="list-btn" type="button" onclick="location.href='/board/list'">
+            <button class="list-btn" type="button"
+                onclick="location.href='/board/list?pageNo=${s.pageNo}&amount=${s.amount}&type=${s.type}&keyword=${s.keyword}'">
                 목록
             </button>
         </div>
@@ -172,7 +173,6 @@
                 <div class="card">
                     <div class="card-body">
 
-                        <c:if test="${not empty login}">
                             <div class="row">
                                 <div class="col-md-9">
                                     <div class="form-group">
@@ -186,27 +186,18 @@
 
 
                                         <div class="profile-box">
-                                            <c:choose>
-                                                <c:when test="${login.profile != null}">
-                                                    <img src="/local${login.profile}" alt="프사">
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <img src="/assets/img/anonymous.jpg" alt="프사">
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <img src="/assets/img/anonymous.jpg" alt="프사">
                                         </div>
 
 
                                         <label for="newReplyWriter" hidden>댓글 작성자</label>
                                         <input id="newReplyWriter" name="replyWriter" type="text" class="form-control"
-                                            placeholder="작성자 이름" style="margin-bottom: 6px;" value="${login.nickName}"
-                                            readonly>
+                                            placeholder="작성자 이름" style="margin-bottom: 6px;" >
                                         <button id="replyAddBtn" type="button" class="btn btn-dark form-control">등록
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                        </c:if>
 
                     </div>
                 </div> <!-- end reply write -->
