@@ -26,9 +26,10 @@
         FROM
             tbl_reply
         WHERE
-            board_no = #{boardNo}
+            board_no = #{bn}
         ORDER BY
             reply_no
+        LIMIT #{p.pageStart}, #{p.amount}
     </select>
 
     <delete id="delete" >
@@ -42,7 +43,8 @@
         UPDATE
             tbl_reply
         SET
-            reply_text = #{replyText}
+            reply_text = #{replyText},
+            update_date = CURRENT_TIMESTAMP
         WHERE
             reply_no = #{replyNo}
     </update>
