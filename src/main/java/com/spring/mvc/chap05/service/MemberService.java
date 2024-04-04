@@ -2,8 +2,10 @@ package com.spring.mvc.chap05.service;
 
 import com.spring.mvc.chap05.dto.request.LoginRequestDto;
 import com.spring.mvc.chap05.dto.request.SignUpRequestDTO;
+import com.spring.mvc.chap05.dto.response.LoginUserResponseDTO;
 import com.spring.mvc.chap05.entity.Member;
 import com.spring.mvc.chap05.mapper.MemberMapper;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -54,5 +56,30 @@ public class MemberService {
 
 	public Boolean checkDuplicateValue(String type, String keyword) {
 		return memberMapper.isDuplicate(type, keyword);
+	}
+
+	public void maintainLoginState(HttpSession session, String account) {
+
+		// 세션은 서버에서만 유일하게 보관되는 데이터로서
+		// 로그인 유지 등 상태 유지가 필요할 때 사용되는 내장 객체
+		// 세션은 쿠키와 달리 모든 데이터를 저장할 수 있고 크기 제한도 없다
+		// 세션의 수명은 기본 1800초 -> 원하는 만큼 수명을 조절할 수 있다
+		// 브라우저가 종료되면 남은 수명에 상관없이 세션 데이터는 소멸된다
+
+		// 현재 로그인한 회원의 모든 정보 조회
+		Member foundMember = memberMapper.findOne(account);
+
+		// DB 데이터를 보여줄 것만 정제
+		LoginUserResponseDTO dto = LoginUserResponseDTO.builder()
+				.account(foundMember.getAccount())
+				.name(foundMember.getName())
+				.email(foundMember.getEmail())
+				.build();
+
+		// 세션에 로그인한 회원 정보를 저장
+		session.setAttribute("login", dto);
+
+		// 세션 수명 설정
+		session.setMaxInactiveInterval(60 * 60);	// 1시간
 	}
 }

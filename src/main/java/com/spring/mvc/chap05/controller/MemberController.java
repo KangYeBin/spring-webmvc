@@ -4,6 +4,10 @@ import com.spring.mvc.chap05.dto.request.LoginRequestDto;
 import com.spring.mvc.chap05.dto.request.SignUpRequestDTO;
 import com.spring.mvc.chap05.service.LoginResult;
 import com.spring.mvc.chap05.service.MemberService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -57,10 +61,13 @@ public class MemberController {
 	public void signIn() {
 		System.out.println("/members/sign-in: GET!!");
 	}
-	
+
 	// 로그인 검증 요청
 	@PostMapping("/sign-in")
-	public String signIn(LoginRequestDto dto, RedirectAttributes ra) {
+	public String signIn(LoginRequestDto dto,
+						 RedirectAttributes ra,
+						 HttpServletResponse response,
+						 HttpServletRequest request) {
 		System.out.println("/members/sign-in: POST!!");
 		System.out.println("dto = " + dto);
 
@@ -74,12 +81,48 @@ public class MemberController {
 //		model.addAttribute("result", result);
 		// 리다이렉트 상황에서는 RedirectAttribute 사용
 		ra.addFlashAttribute("result", result);
-		
+
 		if (result == LoginResult.SUCCESS) {	// 로그인 성공 시
+
+			//로그인 했다는 정보를 계속 유지하기 위한 수단으로 쿠키 사용
+//			makeLoginCookie(dto, response);
+
+			// 세션으로 로그인 유지
+			memberService.maintainLoginState(request.getSession(), dto.getAccount());
+
 			return "redirect:/board/list";
 		}
 
 		return "redirect:/members/sign-in";	// 로그인 실패 시
 
 	}
+
+	private void makeLoginCookie(LoginRequestDto dto, HttpServletResponse response) {
+		// 쿠키에 로그인 기록을 저장
+		// 쿠키 객체 생성 -> 생성자의 매개값으로 쿠키의 이름과 저장할 값을 전달
+		// (문자열만 저장되고 용량의 한계가 있다)
+		Cookie cookie = new Cookie("login", dto.getAccount());
+
+		// 쿠키 세부 설정
+		cookie.setMaxAge(60);	// 쿠키 수명 설정 (초)
+		cookie.setPath("/");	// 유효 경로 -> 모든 경로에서 유효한 쿠키
+
+		// 쿠키가 완성되면 응답 객체에 쿠키를 태워서 클라이언트로 전송
+		response.addCookie(cookie);
+	}
+
+
+	// 로그아웃 요청 처리
+	@GetMapping("/sign-out")
+	public String signOut(HttpSession session) {
+
+		// 세션에서 로그인 정보 기록 삭제
+		session.removeAttribute("login");
+
+		// 세션 전체 무효화 (초기화)
+		session.invalidate();
+
+		return "redirect:/";
+	}
+	
 }

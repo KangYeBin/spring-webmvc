@@ -12,19 +12,12 @@
 
         <!-- 프로필 사진 -->
         <div class="profile-box">
-
-            <c:if test="${login == null || login.profile == null}">
-                <img src="/assets/img/anonymous.jpg" alt="프사">
-            </c:if>
-
-            <c:if test="${login != null && login.profile != null}">
-                <img src="${login.profile}" alt="프사">
-            </c:if>
+            <img src="/assets/img/anonymous.jpg" alt="프사">
         </div>
 
 
         <h2 class="intro-text">
-            Welcome ${login == null ? '' : login.nickName}
+            Welcome ${sessionScope.login == null ? '' : login.name}
         </h2>
         <a href="#" class="menu-open">
             <span class="menu-txt">MENU</span>
@@ -42,12 +35,12 @@
             <li><a href="/board/list">Board</a></li>
             <li><a href="#">Contact</a></li>
 
-            <c:if test="${empty login}">
+            <c:if test="${login == null}">
                 <li><a href="/members/sign-up">Sign Up</a></li>
                 <li><a href="/members/sign-in">Sign In</a></li>
             </c:if>
 
-            <c:if test="${not empty login}">
+            <c:if test="${sessionScope.login != null}">
                 <li><a href="#">My Page</a></li>
                 <li><a href="/members/sign-out">Sign Out</a></li>
             </c:if>
