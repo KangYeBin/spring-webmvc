@@ -1,16 +1,23 @@
 package com.spring.mvc.chap05.service;
 
+import com.spring.mvc.chap05.dto.request.AutoLoginDTO;
 import com.spring.mvc.chap05.dto.request.LoginRequestDto;
 import com.spring.mvc.chap05.dto.request.SignUpRequestDTO;
 import com.spring.mvc.chap05.dto.response.LoginUserResponseDTO;
 import com.spring.mvc.chap05.entity.Member;
 import com.spring.mvc.chap05.mapper.MemberMapper;
+import com.spring.mvc.util.LoginUtils;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 import static com.spring.mvc.chap05.service.LoginResult.*;
+import static com.spring.mvc.util.LoginUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +37,7 @@ public class MemberService {
 	}
 
 	// 로그인 검증 처리
-	public LoginResult authenticate(LoginRequestDto dto) {
+	public LoginResult authenticate(LoginRequestDto dto, HttpSession session, HttpServletResponse response) {
 
 		Member foundMember = memberMapper.findOne(dto.getAccount());
 
@@ -74,10 +81,11 @@ public class MemberService {
 				.account(foundMember.getAccount())
 				.name(foundMember.getName())
 				.email(foundMember.getEmail())
+				.auth(foundMember.getAuth().getDescription())
 				.build();
 
 		// 세션에 로그인한 회원 정보를 저장
-		session.setAttribute("login", dto);
+		session.setAttribute(LOGIN_KEY, dto);
 
 		// 세션 수명 설정
 		session.setMaxInactiveInterval(60 * 60);	// 1시간

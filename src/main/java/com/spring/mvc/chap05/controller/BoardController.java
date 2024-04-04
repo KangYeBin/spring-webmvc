@@ -6,7 +6,9 @@ import com.spring.mvc.chap05.dto.request.BoardWriteRequestDTO;
 import com.spring.mvc.chap05.dto.response.BoardDetailResponseDTO;
 import com.spring.mvc.chap05.dto.response.BoardListResponseDTO;
 import com.spring.mvc.chap05.service.BoardService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Controller
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/board")
 public class BoardController {
@@ -24,7 +27,7 @@ public class BoardController {
 	// chap05/list.jsp
 	@GetMapping("/list")
 	public String list(Model model, @ModelAttribute("s") Search page) {
-		System.out.println("search = " + page);
+		log.info("search : {}", page);
 		List<BoardListResponseDTO> dtoList = service.getList(page);
 
 		// 페이징 버튼 알고리즘 적용 -> 사용자가 요청한 페이지 정보, 총 게시물 개수를 전달.
@@ -45,7 +48,7 @@ public class BoardController {
 	// chap05/write.jsp
 	@GetMapping("/write")
 	public String write() {
-		System.out.println("/board/write: GET!!");
+		log.info("/board/write: GET!!");
 		return "chap05/write";
 	}
 
@@ -53,11 +56,10 @@ public class BoardController {
 	// BoardWriteRequestDTO를 활용하여 파라미터 처리 -> dto.request 패키지에 생성
 	// 등록 완료 후에는 목록 조회 요청이 다시 들어오도록 처리
 	@PostMapping("/write")
-	public String write(BoardWriteRequestDTO dto) {
-		System.out.println("/board/write: POST!!");
-		System.out.println("dto = " + dto);
+	public String write(BoardWriteRequestDTO dto, HttpSession session) {
+		log.info("/board/write: POST!!, dto : {}", dto);
 
-		service.register(dto);
+		service.register(dto, session);
 		return "redirect:/board/list";
 	}
 
@@ -65,7 +67,7 @@ public class BoardController {
 	// 글 번호가 전달되면 삭제 진행
 	@GetMapping("/delete")
 	public String delete(int bno) {
-		System.out.println("/board/delete: GET!! " + bno);
+		log.info("/board/delete: GET!!, bno : {}", bno);
 		service.delete(bno);
 		return "redirect:/board/list";
 	}
@@ -75,7 +77,7 @@ public class BoardController {
 	// chap05/detail.jsp
 	@GetMapping("/detail/{bno}")
 	public String detail(@PathVariable("bno") int bno, @ModelAttribute("s") Search search, Model model) {
-		System.out.println("/board/detail: GET!! " + bno);
+		log.info("/board/detail: GET!!, bno : {}", bno);
 		BoardDetailResponseDTO dto = service.getDetail(bno);
 
 		model.addAttribute("b", dto);
