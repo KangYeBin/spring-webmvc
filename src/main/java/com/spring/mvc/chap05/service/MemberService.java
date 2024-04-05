@@ -1,18 +1,19 @@
 package com.spring.mvc.chap05.service;
 
-import com.spring.mvc.chap05.dto.request.AutoLoginDTO;
+import com.spring.mvc.chap05.dto.request.AutoLoginRequestDTO;
 import com.spring.mvc.chap05.dto.request.LoginRequestDto;
 import com.spring.mvc.chap05.dto.request.SignUpRequestDTO;
 import com.spring.mvc.chap05.dto.response.LoginUserResponseDTO;
 import com.spring.mvc.chap05.entity.Member;
 import com.spring.mvc.chap05.mapper.MemberMapper;
-import com.spring.mvc.util.LoginUtils;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.WebUtils;
 
 import java.time.LocalDateTime;
 
@@ -57,6 +58,28 @@ public class MemberService {
 			return NO_PW;
 		}
 
+		// 자동 로그인 처리
+		if (dto.isAutoLogin()) {
+			// 1. 자동 로그인 쿠키 생성 - 쿠키 안에 절대 중복되지 않는 값을 저장. (브라우저 세션 아이디)
+			Cookie autoLoginCookie = new Cookie(AUTO_LOGIN_COOKIE, session.getId());
+
+			// 2. 쿠키 설정 - 사용 경로, 수명 등
+			int limitTime = 60 * 60 * 24 * 90; // 자동 로그인 유지 시간
+			autoLoginCookie.setPath("/");
+			autoLoginCookie.setMaxAge(limitTime);
+
+			// 3. 쿠키를 클라이언트에게 전송하기 위해 응답 객체에 태우기
+			response.addCookie(autoLoginCookie);
+
+			// 4. DB에도 쿠키에 관련된 값들(랜덤한 세션 아이디, 자동 로그인 만료 시간)을 갱신.
+			memberMapper.saveAutoLogin(AutoLoginRequestDTO.builder()
+					.sessionId(session.getId())
+					.limitTime(LocalDateTime.now().plusDays(90))
+					.account(dto.getAccount())
+					.build()
+			);
+		}
+
 		System.out.println(dto.getAccount() + "님 로그인 성공");
 		return SUCCESS;
 	}
@@ -89,5 +112,28 @@ public class MemberService {
 
 		// 세션 수명 설정
 		session.setMaxInactiveInterval(60 * 60);	// 1시간
+	}
+
+	public void autoLoginClear(HttpServletRequest request, HttpServletResponse response) {
+
+		// 1. 자동 로그인 쿠키를 가져온다
+		Cookie cookie = WebUtils.getCookie(request, AUTO_LOGIN_COOKIE);
+
+		// 2. 쿠키를 삭제한다 (쿠키를 삭제하는 메서드는 존재하지 않는다
+		// -> 쿠키의 수명을 0초로 설정하여 다시 클라이언트에 전송 -> 쿠키 자동 소멸
+		if (cookie != null) {
+			cookie.setMaxAge(0);
+			cookie.setPath("/");
+			response.addCookie(cookie);
+
+			// 3. DB에서도 세션 아이디와 만료 시간 제거
+			memberMapper.saveAutoLogin(
+					AutoLoginRequestDTO.builder()
+							.sessionId("none")	// 세션 아이디 지우기
+							.limitTime(LocalDateTime.now())	// 로그아웃한 현재 날짜
+							.account(getCurrentLoginMemberAccount(request.getSession()))	// 로그인 중이었던 사용자 아이디
+							.build()
+			);
+		}
 	}
 }

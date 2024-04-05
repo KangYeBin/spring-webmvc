@@ -2,16 +2,18 @@ package com.spring.mvc.chap05.dto.request;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @ToString
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-@Builder
-public class LoginRequestDto {
+public class AutoLoginRequestDTO {
 
+	private String sessionId;
+	private LocalDateTime limitTime;
 	private String account;
-	private String password;
-	private boolean autoLogin;	// 자동 로그인 체크 여부
 }

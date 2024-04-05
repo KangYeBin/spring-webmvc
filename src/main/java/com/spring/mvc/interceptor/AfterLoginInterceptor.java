@@ -8,6 +8,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.PrintWriter;
 
+import static com.spring.mvc.util.LoginUtils.*;
+
 @Configuration
 public class AfterLoginInterceptor implements HandlerInterceptor {
 
@@ -20,7 +22,7 @@ public class AfterLoginInterceptor implements HandlerInterceptor {
 		
 		// 세션 데이터 중 'login'이라는 이름의 데이터가 있는지 확인 후
 		// 존재한다면 요청이 컨트롤러로 들어가지 못하게 막는다
-		if (session.getAttribute("login") != null) {
+		if (isLogin(session)) {
 
 			response.setContentType("text/html; charset=UTF-8");
 			PrintWriter w = response.getWriter();

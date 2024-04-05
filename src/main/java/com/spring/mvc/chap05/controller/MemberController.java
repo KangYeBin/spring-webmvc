@@ -4,6 +4,7 @@ import com.spring.mvc.chap05.dto.request.LoginRequestDto;
 import com.spring.mvc.chap05.dto.request.SignUpRequestDTO;
 import com.spring.mvc.chap05.service.LoginResult;
 import com.spring.mvc.chap05.service.MemberService;
+import com.spring.mvc.util.LoginUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import static com.spring.mvc.util.LoginUtils.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -71,7 +74,8 @@ public class MemberController {
 
 		log.info("/members/sign-in: POST!!, dto : {}", dto);
 
-		LoginResult result = memberService.authenticate(dto);
+		// 자동 로그인 서비스를 추가하기 위해 세션과 응답 객체도 함께 전달
+		LoginResult result = memberService.authenticate(dto, request.getSession(), response);
 		log.info("result : {}", result);
 
 		// model에 담긴 데이터는 리다이렉트시 jsp로 전달되지 못한다
@@ -114,8 +118,17 @@ public class MemberController {
 
 	// 로그아웃 요청 처리
 	@GetMapping("/sign-out")
-	public String signOut(HttpSession session) {
+	public String signOut(HttpSession session,
+						  HttpServletRequest request,
+						  HttpServletResponse response) {
 		log.info("/member/sign-out: GET!!");
+
+		// 자동 로그인 중인지 확인
+		if (isAutoLogin(request)) {
+			// 쿠키를 삭제하고 DB 데이터도 원래대로 돌려놓아야 한다
+			memberService.autoLoginClear(request,response);
+		}
+
 
 		// 세션에서 로그인 정보 기록 삭제
 		session.removeAttribute("login");
@@ -125,5 +138,5 @@ public class MemberController {
 
 		return "redirect:/";
 	}
-	
+
 }
