@@ -25,6 +25,8 @@ public class ReplyDetailResponseDTO {
 	@JsonFormat(pattern = "yyyy년 MM월 dd일 HH:mm (수정됨)")
 	private LocalDateTime updateDate;
 
+	private String account;
+
 	// entity를 DTO로 바꿔주는 생성자
 	public ReplyDetailResponseDTO(Reply reply) {
 		this.rno = reply.getReplyNo();
@@ -32,5 +34,6 @@ public class ReplyDetailResponseDTO {
 		this.writer = reply.getReplyWriter();
 		this.regDate = reply.getReplyDate();
 		this.updateDate = reply.getUpdateDate();
+		this.account = reply.getAccount();
 	}
 }

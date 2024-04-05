@@ -6,6 +6,7 @@ import com.spring.mvc.chap05.dto.request.ReplyPostRequestDTO;
 import com.spring.mvc.chap05.dto.response.ReplyDetailResponseDTO;
 import com.spring.mvc.chap05.dto.response.ReplyListResponseDTO;
 import com.spring.mvc.chap05.service.ReplyService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -56,8 +57,9 @@ public class ReplyApiController {
 	// RequestBody : 비동기요청에서 요청 객체 바디 안에 있는 JSON을 파싱
 	@PostMapping
 	@ResponseBody
-	public ResponseEntity<?> create(@Validated @RequestBody ReplyPostRequestDTO dto
-			, BindingResult result) { // 검증 결과 메시지를 갖는 객체
+	public ResponseEntity<?> create(@Validated @RequestBody ReplyPostRequestDTO dto,
+			BindingResult result,	// 검증 결과 메시지를 갖는 객체
+			HttpSession session) {
 
 		// 입력값 검증에 걸리면 400번 status와 함께 메시지를 클라이언트로 전송
 		if (result.hasErrors()) {
@@ -73,7 +75,7 @@ public class ReplyApiController {
 		System.out.println("/api/v1/replies: POST!!");
 		System.out.println("dto = " + dto);
 
-		replyService.register(dto);
+		replyService.register(dto, session);
 
 		return ResponseEntity.ok("success");
 	}
