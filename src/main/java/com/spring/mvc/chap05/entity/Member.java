@@ -40,5 +40,7 @@ public class Member {
 	// DB 테이블과 1:1 매칭되는 Entity도 필드를 추가해야 한다
 	private String sessionId;
 	private LocalDateTime limitTime;
+	
+	private String profileImage;	// 프로필 사진 이미지 경로
 
 }

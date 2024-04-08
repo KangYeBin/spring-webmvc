@@ -27,6 +27,8 @@ public class ReplyDetailResponseDTO {
 
 	private String account;
 
+	private String profile;	// 프로필 경로
+
 	// entity를 DTO로 바꿔주는 생성자
 	public ReplyDetailResponseDTO(Reply reply) {
 		this.rno = reply.getReplyNo();
@@ -35,5 +37,6 @@ public class ReplyDetailResponseDTO {
 		this.regDate = reply.getReplyDate();
 		this.updateDate = reply.getUpdateDate();
 		this.account = reply.getAccount();
+		this.profile = reply.getProfileImage();
 	}
 }

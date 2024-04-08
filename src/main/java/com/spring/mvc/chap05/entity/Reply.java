@@ -48,4 +48,5 @@ public class Reply {
 	private LocalDateTime updateDate;
 	private String account;
 
+	private String profileImage;
 }
