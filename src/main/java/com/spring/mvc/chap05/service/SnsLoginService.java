@@ -38,7 +38,7 @@ public class SnsLoginService {
 		log.info("이메일 : {}", email);
 
 		// 회원 중복 확인 (이메일
-		if (memberService.checkDuplicateValue("email", "email")) {
+		if (!memberService.checkDuplicateValue("email", "email")) {
 
 			// 한번도 카카오 로그인을 한적이 없다면
 			memberService.join(
