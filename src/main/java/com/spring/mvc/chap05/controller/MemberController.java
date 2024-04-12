@@ -2,6 +2,8 @@ package com.spring.mvc.chap05.controller;
 
 import com.spring.mvc.chap05.dto.request.LoginRequestDto;
 import com.spring.mvc.chap05.dto.request.SignUpRequestDTO;
+import com.spring.mvc.chap05.dto.response.LoginUserResponseDTO;
+import com.spring.mvc.chap05.entity.Member;
 import com.spring.mvc.chap05.service.LoginResult;
 import com.spring.mvc.chap05.service.MemberService;
 import com.spring.mvc.util.LoginUtils;
@@ -65,6 +67,9 @@ public class MemberController {
 		// 서버에 파일 업로드
 		String savePath = FileUtils.uploadFile(dto.getProfileImage(), rootPath);
 		log.info("save-path : {}", savePath);
+
+		// 일반 방식 (우리 사이트를 통해 회원가입)
+		dto.setLoginMethod(Member.LoginMethod.COMMON);
 
 		memberService.join(dto, savePath);
 
@@ -140,6 +145,11 @@ public class MemberController {
 			memberService.autoLoginClear(request,response);
 		}
 
+		// sns 로그인 상태인지 확인
+		LoginUserResponseDTO dto = (LoginUserResponseDTO) session.getAttribute(LOGIN_KEY);
+		if (dto.getLoginMethod().equals("KAKAO")) {
+			memberService.kakaoLogout(dto, session);
+		}
 
 		// 세션에서 로그인 정보 기록 삭제
 		session.removeAttribute("login");
